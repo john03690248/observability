@@ -28,7 +28,7 @@ services:
     environment:
       APP_NAME: "app-b"
       TARGET_ONE_SVC: "app-a:8000"
-      OTLP_GRPC_ENDPOINT: "http://otel-collector:4317"
+      OTLP_GRPC_ENDPOINT: "http://otel-collector:4319"
     command: "python main.py"
     depends_on:
       - loki
@@ -125,7 +125,7 @@ services:
       - "8888:8888"
       - "8889:8889"
       - "13133:13133"
-      - "4317:4317"
+      - "4319:4319"
       - "4318:4318"
     depends_on:
       - prometheus
