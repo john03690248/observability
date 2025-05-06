@@ -1,0 +1,140 @@
+services:
+  app-a:
+    build: ./app_fastapi/
+    container_name: app-a
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./app_fastapi/:/app
+      - ./logs:/logs
+    environment:
+      APP_NAME: "app-a"
+      TARGET_ONE_SVC: "app-b:8000"
+      OTLP_GRPC_ENDPOINT: "http://otel-collector:4317"
+    command: "python main.py"
+    depends_on:
+      - loki
+    networks:
+      - observability-net
+
+  app-b:
+    build: ./app_fastapi/
+    container_name: app-b
+    ports:
+      - "8001:8000"
+    volumes:
+      - ./app_fastapi/:/app
+      - ./logs:/logs
+    environment:
+      APP_NAME: "app-b"
+      TARGET_ONE_SVC: "app-a:8000"
+      OTLP_GRPC_ENDPOINT: "http://otel-collector:4317"
+    command: "python main.py"
+    depends_on:
+      - loki
+    networks:
+      - observability-net
+
+  tempo:
+    image: grafana/tempo:2.2.3
+    container_name: tempo
+    ports:
+      - "4317:4317"   # OTLP gRPC port
+    volumes:
+      - ./etc/tempo/tempo.yaml:/etc/tempo/tempo.yaml
+    command:
+      - "--target=all"
+      - "--storage.trace.backend=local"
+      - "--storage.trace.local.path=/var/tempo"
+      - "--auth.enabled=false"
+      - "--config.file=/etc/tempo/tempo.yaml"
+    depends_on:
+      - loki
+    logging:
+      driver: json-file
+    networks:
+      - observability-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    command:
+      - "--web.enable-remote-write-receiver"
+      - "--enable-feature=exemplar-storage"
+      - "--config.file=/workspace/prometheus.yml"
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./etc/prometheus:/workspace
+    depends_on:
+      - loki
+    logging:
+      driver: json-file
+    networks:
+      - observability-net
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    volumes:
+      - ./etc/promtail/config.yml:/etc/promtail/config.yml
+      - ./logs:/logs
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+    networks:
+      - observability-net
+
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./etc/loki/local-config.yaml:/etc/loki/local-config.yaml
+    networks:
+      - observability-net
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_FEATURE_TOGGLES_ENABLE: "tempoServiceGraph,traceToMetrics"
+      GF_USERS_DEFAULT_THEME: "light"
+      GF_SECURITY_ALLOW_EMBEDDING: true
+      GF_AUTH_ANONYMOUS_ENABLED: true
+    volumes:
+      - ./etc/grafana/:/etc/grafana/provisioning/datasources
+    depends_on:
+      - loki
+    logging:
+      driver: json-file
+    networks:
+      - observability-net
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.88.0
+    restart: always
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./etc/otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "8888:8888"
+      - "8889:8889"
+      - "13133:13133"
+      - "4317:4317"
+      - "4318:4318"
+    depends_on:
+      - prometheus
+      - tempo
+    logging:
+      driver: json-file
+    networks:
+      - observability-net
+
+networks:
+  observability-net:
+    name: observability-net

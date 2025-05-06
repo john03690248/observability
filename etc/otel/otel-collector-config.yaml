@@ -1,0 +1,34 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4319
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  prometheusremotewrite:
+    endpoint: http://prometheus:9090/api/prom/push
+    add_metric_suffixes: false
+
+  debug:
+
+  otlp:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+
+processors:
+  batch:
+
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, otlp]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, prometheusremotewrite]

@@ -1,0 +1,16 @@
+{
+    "name": "o11y-env",
+    "dockerComposeFile": ["docker-compose.yml"],
+    "service": "app-a",
+    "workspaceFolder": "/workspace",
+    "forwardPorts": [8000, 8001, 3001, 9090, 3100],
+    "postCreateCommand": "pip install -r app_fastapi/requirements.txt",
+    "customizations": {
+      "vscode": {
+        "extensions": [
+          "ms-python.python",
+          "ms-azuretools.vscode-docker"
+        ]
+      }
+    }
+  }
