@@ -1,6 +1,6 @@
 {
     "name": "o11y-env",
-    "dockerComposeFile": ["docker-compose.yml"],
+    "dockerComposeFile": ["docker-compose.yaml"],
     "service": "app-a",
     "workspaceFolder": "/workspace",
     "forwardPorts": [8000, 8001, 3001, 9090, 3100],
