@@ -3,6 +3,9 @@ auth_enabled: false
 server:
   http_listen_port: 3100
 
+compactor:
+  working_directory: /loki/compactor
+
 ingester:
   lifecycler:
     ring:
