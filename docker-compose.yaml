@@ -93,8 +93,11 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - ./etc/loki/local-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+      - wal-data:/wal
     networks:
       - observability-net
+    user: "0:0"
 
   grafana:
     image: grafana/grafana:11.0.0
@@ -138,3 +141,7 @@ services:
 networks:
   observability-net:
     name: observability-net
+
+volumes:
+  loki-data:
+  wal-data:
