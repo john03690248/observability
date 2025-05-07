@@ -10,7 +10,7 @@ services:
     environment:
       APP_NAME: "app-a"
       TARGET_ONE_SVC: "app-b:8000"
-      OTLP_GRPC_ENDPOINT: "http://otel-collector:4317"
+      OTLP_GRPC_ENDPOINT: "http://otel-collector:4319"
     command: "python main.py"
     depends_on:
       - loki
