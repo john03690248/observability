@@ -6,6 +6,8 @@ Start lab using docker compose
 docker-compose up -d
 ```
 
-Grafana Dashboard
+## Grafana Dashboard
 
 Visit <http://localhost:3001>
+
+login with default account `admin/admin`
